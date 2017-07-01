@@ -1,4 +1,10 @@
 #!/usr/bin/python
+
+# Developed from
+# http://www.arducam.com/multi-camera-adapter-module-raspberry-pi/
+# Rongzhong Li
+# Jun. 30, 2017
+
 import RPi.GPIO as gp
 import os
 
@@ -9,46 +15,33 @@ gp.setup(7, gp.OUT)
 gp.setup(11, gp.OUT)
 gp.setup(12, gp.OUT)
 
-gp.setup(15, gp.OUT)
-gp.setup(16, gp.OUT)
-gp.setup(21, gp.OUT)
-gp.setup(22, gp.OUT)
-
-gp.output(11, True)
-gp.output(12, True)
-gp.output(15, True)
-gp.output(16, True)
-gp.output(21, True)
-gp.output(22, True)
+pins=[7,11,12]
+enable=[[0,0,1],[1,0,1],[0,1,0],[1,1,0]]
 
 def main():
-    gp.output(7, False)
-    gp.output(11, False)
-    gp.output(12, True)
-    capture(1)
+    frame=0
+    try:
+        while 1:
+            for cam in range(4):
+                for p in range(3):
+                    gp.output(pins[p], enable[cam][p])
+                capture(frame,cam)
+            frame+=1
+    except KeyboardInterrupt:
+        pass
+    finally:
+        gp.output(7, False)
+        gp.output(11, False)
+        gp.output(12, True)
+            
 
-    gp.output(7, True)
-    gp.output(11, False)
-    gp.output(12, True)
-    capture(2)
-
-    gp.output(7, False)
-    gp.output(11, True)
-    gp.output(12, False)
-    capture(3)
-
-    gp.output(7, True)
-    gp.output(11, True)
-    gp.output(12, False)
-    capture(4)
-
-def capture(cam):
-    cmd = "raspistill -o capture_%d.jpg" % cam
+def capture(frame,cam):
+    cmd = "raspistill -o capture_%d_%d.jpg" % (frame,cam)
+    print (cmd)
     os.system(cmd)
 
 if __name__ == "__main__":
     main()
 
-    gp.output(7, False)
-    gp.output(11, False)
-    gp.output(12, True)
+
+
