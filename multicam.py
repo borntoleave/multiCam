@@ -27,19 +27,21 @@ for p in range(3):
 enable=[[0,0,1],[1,0,1],[0,1,0],[1,1,0]]
 flip=[1,1],[0,0],[1,1],[0,0]#[w,h]
 
-W=640#camW/3
-H=480#camH/3		#rpi camera will round up the resolution to certain intervals. 
+W=640/2
+H=480/2	#rpi camera will round up the resolution to certain intervals. 
 resolution=(W,H)
 
 
 
 camera=PiCamera()
 camera.resolution=resolution
+camera.framerate=10
 
 time.sleep(0.1)
 			
 output=np.zeros(H*W*3,dtype=np.uint8)
-print output
+fusion=np.empty((H*2,W*2,3),dtype=np.uint8)
+
 def main():
     f=0
     try:
@@ -52,17 +54,17 @@ def main():
 		camera.vflip=flip[c][1]
                 camera.capture(output,'bgr' )#,use_video_port=True)
                 frame=output.reshape(H,W,3)
-                print frame.shape
-                plt.subplot(2,2,c)
-                plt.imshow(frame)
-                #cv2.imshow('img',frame)
-                #cv2.imwrite("capture_%d_%d.jpg" % (f,c),frame)
-                #if  cv2.waitKey(1) & 0xFF==ord('q'):
-                #    cv2.destroyAllWindows()
-                #    break
+                fusion[c/2*H:(c/2+1)*H,c%2*W:(c%2+1)*W,:]=frame[:,:,:]
+
+                
                 #camera.start_preview()
                 #camera.stop_preview()
-                plt.draw()
+                print("capture_%d_%d.jpg" % (f,c))
+            cv2.imshow('img',fusion)
+            cv2.imwrite("capture_%d_%d.jpg" % (f,c),frame)
+            if  cv2.waitKey(1) & 0xFF==ord('q'):
+                cv2.destroyAllWindows()
+                break
             f+=1
     except KeyboardInterrupt:
         time.sleep(2)
